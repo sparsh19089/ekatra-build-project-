@@ -1,1 +1,0 @@
-# ekatra-build-project-
