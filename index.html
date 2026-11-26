@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cold Email Opener — grounded 3-line cold openers</title>
+<meta name="description" content="Paste a company URL, get a 3-line cold email opener grounded in the live site. No keys, no signup." />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+  .rise { animation: rise .18s ease-out both; }
+</style>
+</head>
+<body class="min-h-screen bg-stone-50 text-stone-900 antialiased">
+<main class="mx-auto max-w-2xl px-4 py-10">
+
+  <!-- Header -->
+  <header class="mb-6">
+    <div class="flex items-center gap-2">
+      <div class="h-8 w-8 rounded-lg bg-emerald-600 grid place-items-center font-black text-white">3</div>
+      <h1 class="text-2xl font-bold tracking-tight">opener<span class="text-emerald-600">3</span></h1>
+      <span class="ml-auto rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">$0 · no keys · no signup</span>
+    </div>
+    <p class="mt-2 text-sm text-stone-500">Paste a company URL → get a 3-line cold-email opener grounded in what their site <em>actually says</em>. The model phrases; the code verifies.</p>
+  </header>
+
+  <!-- Input -->
+  <form id="runForm" class="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+    <label for="urlInput" class="text-xs font-semibold uppercase tracking-wider text-stone-400">Company website</label>
+    <div class="mt-1.5 flex gap-2">
+      <input id="urlInput" type="text" inputmode="url" placeholder="https://linear.app" autocomplete="off"
+             class="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 placeholder:text-stone-400" />
+      <button id="runBtn" type="submit"
+              class="shrink-0 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-wait">
+        <span id="runBtnLabel">Generate 3-Line Opener</span>
+      </button>
+    </div>
+    <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+      <span class="text-stone-400">One-click tests:</span>
+      <button type="button" data-url="https://cal.com" class="test-chip rounded-full border border-stone-300 px-3 py-1 hover:border-emerald-500 hover:text-emerald-700">cal.com</button>
+      <button type="button" data-url="https://posthog.com" class="test-chip rounded-full border border-stone-300 px-3 py-1 hover:border-emerald-500 hover:text-emerald-700">posthog.com</button>
+      <button type="button" data-url="https://dub.co" class="test-chip rounded-full border border-stone-300 px-3 py-1 hover:border-emerald-500 hover:text-emerald-700">dub.co</button>
+    </div>
+  </form>
+
+  <!-- Execution trace -->
+  <section id="traceCard" class="mt-4 hidden rounded-2xl border border-stone-200 bg-white p-4 shadow-sm rise">
+    <div class="flex items-center gap-2">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-stone-400">Execution trace</h2>
+      <span class="text-[11px] text-stone-400">one server call · details are the server's own measurements</span>
+      <span id="elapsed" class="ml-auto rounded-full bg-stone-100 px-2.5 py-0.5 font-mono text-[11px] text-stone-500">0.0s</span>
+    </div>
+    <ol id="trace" class="mt-3 space-y-2 font-mono text-[12px]"></ol>
+  </section>
+
+  <!-- Result -->
+  <section id="resultCard" class="mt-4 hidden rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm rise">
+    <div class="flex flex-wrap items-center gap-2">
+      <h2 class="text-xs font-semibold uppercase tracking-wider text-stone-400">Your opener</h2>
+      <span id="modePill" class="rounded-full px-2.5 py-0.5 text-[11px] font-bold"></span>
+      <span id="wordPill" class="rounded-full border border-stone-200 px-2.5 py-0.5 text-[11px] text-stone-500"></span>
+      <span id="latencyPill" class="rounded-full border border-stone-200 px-2.5 py-0.5 text-[11px] text-stone-500"></span>
+      <button id="copyBtn" class="ml-auto rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-stone-700">Copy Opener</button>
+    </div>
+    <div id="openerLines" class="mt-3 space-y-2"></div>
+    <p class="mt-3 text-[11px] text-emerald-700">✓ 3 lines &nbsp;✓ ≤55 words &nbsp;✓ no clichés &nbsp;✓ question hook — enforced in code, not just prompted</p>
+    <details id="ctxDetails" class="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3">
+      <summary class="cursor-pointer text-xs font-semibold text-stone-600 select-none">🔍 View Scraped Site Context <span id="ctxMeta" class="font-normal text-stone-400"></span></summary>
+      <div id="signalChips" class="mt-2 flex flex-wrap gap-1.5 text-[11px]"></div>
+      <pre id="ctxPre" class="mt-2 max-h-72 overflow-y-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-stone-600"></pre>
+    </details>
+  </section>
+
+  <!-- Error -->
+  <section id="errCard" class="mt-4 hidden rounded-2xl border border-rose-200 bg-rose-50 p-4 rise">
+    <h2 class="text-sm font-bold text-rose-700">Couldn't ground an opener</h2>
+    <p id="errMsg" class="mt-1 text-xs leading-relaxed text-rose-900"></p>
+    <p class="mt-2 text-[11px] text-rose-500">We refuse to invent facts. If the live scrape fails, you get an honest error — not a hallucination.</p>
+  </section>
+
+  <footer class="mt-8 text-center text-[11px] text-stone-400">
+    Scraped live via Jina Reader · drafted by a free-tier LLM (or deterministic fallback) · validated in code ·
+    Cold Email Opener
+  </footer>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const CONTEXT_LIMIT = 4000;
+
+const STEPS = [
+  { badge: "CODE",  label: "Normalize & validate URL" },
+  { badge: "NET",   label: "Scrape site via Jina Reader (8s cap)" },
+  { badge: "CODE",  label: "Truncate context to 4,000 chars" },
+  { badge: "MODEL", label: "Draft 3-line opener" },
+  { badge: "CODE",  label: "Guardrails: 3 lines · ≤55 words · no clichés · question hook" },
+];
+const BADGE_CLS = {
+  CODE: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  NET: "bg-sky-50 text-sky-700 border-sky-200",
+  MODEL: "bg-violet-50 text-violet-700 border-violet-200",
+};
+const STATUS = {
+  queued: { icon: "○", cls: "text-stone-300" },
+  active: { icon: "↻", cls: "text-sky-600 spin" },
+  done:   { icon: "✓", cls: "text-emerald-600" },
+  warn:   { icon: "!", cls: "text-amber-600" },
+  fail:   { icon: "✗", cls: "text-rose-600" },
+};
+
+function initTrace() {
+  $("trace").innerHTML = "";
+  STEPS.forEach((s, i) => {
+    const li = document.createElement("li");
+    li.className = "flex items-start gap-2";
+    li.innerHTML =
+      '<span id="st' + i + '" class="w-4 shrink-0 text-center">○</span>' +
+      '<span id="bg' + i + '" class="shrink-0 rounded border px-1.5 text-[10px] font-bold">' + s.badge + '</span>' +
+      '<span class="text-stone-700"><span id="lb' + i + '"></span><span id="dt' + i + '" class="text-stone-400"></span></span>';
+    $("trace").appendChild(li);
+    $("lb" + i).textContent = s.label;
+    setStep(i, "queued");
+  });
+}
+function setStep(i, state, detail, badge) {
+  const st = STATUS[state];
+  const el = $("st" + i);
+  el.textContent = st.icon;
+  el.className = "w-4 shrink-0 text-center " + st.cls;
+  if (detail != null) $("dt" + i).textContent = " — " + detail;
+  if (badge) {
+    $("bg" + i).textContent = badge;
+    $("bg" + i).className = "shrink-0 rounded border px-1.5 text-[10px] font-bold " + BADGE_CLS[badge];
+  } else {
+    $("bg" + i).className = "shrink-0 rounded border px-1.5 text-[10px] font-bold " + BADGE_CLS[STEPS[i].badge];
+  }
+  $("lb" + i).className = state === "queued" ? "text-stone-400" : "text-stone-700";
+}
+
+function normalizeClient(raw) {
+  let s = (raw || "").trim();
+  if (!s) throw new Error("Enter a URL first.");
+  if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+  const u = new URL(s);
+  if (!u.hostname.includes(".")) throw new Error("That doesn't look like a real domain.");
+  return u.origin + u.pathname.replace(/\/+$/, "");
+}
+
+let busy = false, timer = null;
+async function generate(raw) {
+  if (busy) return;
+  $("resultCard").classList.add("hidden");
+  $("errCard").classList.add("hidden");
+  $("traceCard").classList.remove("hidden");
+  initTrace();
+  let url;
+  try {
+    url = normalizeClient(raw);
+  } catch (e) {
+    setStep(0, "fail", e.message);
+    return showError(e.message);
+  }
+  busy = true;
+  $("runBtn").disabled = true;
+  $("runBtnLabel").innerHTML = '<span class="spin">↻</span> Working';
+  setStep(0, "done", url);
+  setStep(1, "active", "server is scraping, then drafting");
+  const t0 = performance.now();
+  timer = setInterval(() => { $("elapsed").textContent = ((performance.now() - t0) / 1000).toFixed(1) + "s"; }, 100);
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const idx = { validate: 0, scrape: 1, draft: 3 }[data.step] ?? 1;
+      setStep(idx, "fail", data.error || "HTTP " + res.status);
+      return showError(data.error || "Request failed (HTTP " + res.status + ").");
+    }
+    // Replay the server's real pipeline with its real measurements (staggered for readability).
+    const chars = (n) => Number(n || 0).toLocaleString();
+    setStep(1, "done", chars(data.scrapedChars) + " chars in " + (data.scrapeMs / 1000).toFixed(1) + "s");
+    setTimeout(() => setStep(2, "done", "kept " + chars((data.scrapedPreview || "").length) + " of " + chars(data.scrapedChars) + " chars (~1,000 tokens)"), 140);
+    setTimeout(() => {
+      if (data.mode === "llm") setStep(3, "done", "via " + data.model, "MODEL");
+      else if (data.mode === "heuristic-fallback") { $("lb3").textContent = "Model failed guardrails → heuristic draft"; setStep(3, "warn", data.note, "CODE"); }
+      else { $("lb3").textContent = "Heuristic draft (no server key)"; setStep(3, "done", data.note, "CODE"); }
+    }, 280);
+    setTimeout(() => { setStep(4, "done", data.words + "/55 words · all checks passed"); renderResult(data); }, 420);
+  } catch (e) {
+    setStep(1, "fail", "network");
+    showError("Couldn't reach /api/generate. This page must be served by Vercel (or `npx vercel dev`) — not opened as a local file.");
+  } finally {
+    clearInterval(timer);
+    $("elapsed").textContent = ((performance.now() - t0) / 1000).toFixed(1) + "s";
+    busy = false;
+    $("runBtn").disabled = false;
+    $("runBtnLabel").textContent = "Generate 3-Line Opener";
+  }
+}
+
+function renderResult(data) {
+  const roles = ["FACT", "PAIN", "HOOK"];
+  const roleCls = ["text-emerald-700 bg-emerald-50", "text-amber-700 bg-amber-50", "text-sky-700 bg-sky-50"];
+  $("openerLines").innerHTML = "";
+  data.opener.split("\n").forEach((line, i) => {
+    const row = document.createElement("div");
+    row.className = "rise flex items-start gap-3 rounded-xl border border-stone-200 bg-stone-50 p-3";
+    row.innerHTML = '<span class="mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ' + roleCls[i] + '">' + roles[i] + '</span><p class="text-sm leading-relaxed"></p>';
+    row.lastElementChild.textContent = line;
+    $("openerLines").appendChild(row);
+  });
+  const pill = $("modePill");
+  if (data.mode === "llm") { pill.textContent = "✦ LLM · " + data.model; pill.className = "rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-violet-50 text-violet-700"; }
+  else if (data.mode === "heuristic-fallback") { pill.textContent = "⚙ heuristic fallback"; pill.className = "rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-amber-50 text-amber-700"; }
+  else { pill.textContent = "⚙ heuristic · zero-key"; pill.className = "rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-emerald-50 text-emerald-700"; }
+  $("wordPill").textContent = data.words + "/55 words";
+  $("latencyPill").textContent = (data.latencyMs / 1000).toFixed(1) + "s";
+  $("copyBtn").dataset.text = data.opener;
+  const sig = data.signals || {};
+  $("ctxMeta").textContent = " — first " + CONTEXT_LIMIT.toLocaleString() + " chars, exactly what the model saw";
+  $("ctxPre").textContent = data.scrapedPreview || "";
+  const chips = [];
+  if (sig.category) chips.push("category: " + sig.category);
+  if (sig.prices && sig.prices.length) chips.push("prices: " + sig.prices.join(", "));
+  if (sig.free_tier) chips.push("free: " + sig.free_tier);
+  if (sig.h1) chips.push("H1 ✓");
+  if (sig.open_source) chips.push("open source");
+  $("signalChips").innerHTML = "";
+  chips.forEach((c) => {
+    const s = document.createElement("span");
+    s.className = "rounded-full border border-stone-200 bg-white px-2 py-0.5 text-stone-500";
+    s.textContent = c;
+    $("signalChips").appendChild(s);
+  });
+  $("resultCard").classList.remove("hidden");
+}
+
+function showError(msg) {
+  $("errMsg").textContent = msg;
+  $("errCard").classList.remove("hidden");
+}
+
+async function copyOpener() {
+  const t = $("copyBtn").dataset.text || "";
+  try { await navigator.clipboard.writeText(t); }
+  catch {
+    const ta = document.createElement("textarea");
+    ta.value = t; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); ta.remove();
+  }
+  const old = $("copyBtn").textContent;
+  $("copyBtn").textContent = "Copied ✓";
+  setTimeout(() => { $("copyBtn").textContent = old; }, 1400);
+}
+
+$("runForm").addEventListener("submit", (e) => { e.preventDefault(); generate($("urlInput").value); });
+document.querySelectorAll(".test-chip").forEach((b) =>
+  b.addEventListener("click", () => { $("urlInput").value = b.dataset.url; generate(b.dataset.url); }));
+$("copyBtn").addEventListener("click", copyOpener);
+const qp = new URLSearchParams(location.search).get("url");
+if (qp) $("urlInput").value = qp;
+</script>
+</body>
+</html>
